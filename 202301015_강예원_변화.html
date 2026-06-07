@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>변화(變化) — 나의 변화 타임라인</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --spring:#5C8A4E;  --spring-soft:#EDF4E8;
+    --summer:#3E7CB1;  --summer-soft:#E7F0F7;
+    --autumn:#A9744F;  --autumn-soft:#F5ECE3;
+    --winter:#7E6BA8;  --winter-soft:#EFEBF6;
+
+    --bg:#FBFAF7;
+    --ink:#2B2A28;
+    --ink-soft:#6B6862;
+    --line:#E5E1D8;
+
+    --active-bg:var(--bg);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Noto Sans KR',sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+  }
+  .serif{font-family:'Gowun Batang',serif;}
+
+
+  #hero{
+    min-height:100vh;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    text-align:center;padding:24px;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(92,138,78,.10), transparent 40%),
+      radial-gradient(circle at 85% 25%, rgba(62,124,177,.10), transparent 40%),
+      radial-gradient(circle at 20% 85%, rgba(169,116,79,.10), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(126,107,168,.12), transparent 40%),
+      var(--bg);
+  }
+  .hero-line{
+    font-family:'Gowun Batang',serif;
+    font-size:clamp(1.5rem,4.4vw,2.9rem);
+    font-weight:700;line-height:1.5;
+    letter-spacing:-.01em;min-height:1.5em;
+  }
+  .kw{font-weight:700;}
+  .kw.spring{color:var(--spring);}
+  .kw.summer{color:var(--summer);}
+  .kw.autumn{color:var(--autumn);}
+  .kw.winter{color:var(--winter);}
+  .cursor{
+    display:inline-block;width:.06em;margin-left:.04em;
+    color:var(--ink);font-weight:300;
+    animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{50%{opacity:0;}}
+
+  .hero-sub{
+    margin-top:28px;font-size:clamp(.95rem,2vw,1.1rem);
+    color:var(--ink-soft);letter-spacing:.02em;
+    opacity:0;transform:translateY(8px);transition:all .9s ease;
+  }
+  .hero-btn{
+    margin-top:40px;
+    font-family:'Gowun Batang',serif;font-size:1.05rem;
+    padding:14px 30px;border:none;border-radius:999px;cursor:pointer;
+    background:var(--ink);color:#fff;letter-spacing:.03em;
+    opacity:0;transform:translateY(8px);
+    transition:opacity .9s ease,transform .9s ease,box-shadow .3s ease,background .3s ease;
+    box-shadow:0 8px 22px rgba(0,0,0,.12);
+  }
+  .hero-btn:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.18);}
+  .show{opacity:1 !important;transform:translateY(0) !important;}
+
+
+  .locked{display:none;}
+  #timeline{
+    padding:90px 24px 70px;
+    background:var(--active-bg);
+    transition:background-color 1s ease;
+  }
+  .section-title{
+    text-align:center;font-family:'Gowun Batang',serif;
+    font-size:clamp(1.6rem,3.5vw,2.2rem);font-weight:700;
+    margin-bottom:14px;
+  }
+  .section-desc{
+    text-align:center;color:var(--ink-soft);
+    margin-bottom:55px;font-size:.95rem;
+  }
+  .cards{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:34px;}
+
+  .season-card{
+    background:#fff;border-radius:20px;
+    border:1px solid var(--line);
+    box-shadow:0 6px 22px rgba(0,0,0,.05);
+    overflow:hidden;cursor:pointer;
+    border-top:5px solid var(--accent);
+    opacity:0;transform:translateY(40px);
+    transition:opacity .8s ease,transform .8s ease,box-shadow .35s ease;
+  }
+  .season-card.reveal{opacity:1;transform:translateY(0);}
+  .season-card:hover{transform:translateY(-6px);box-shadow:0 16px 34px rgba(0,0,0,.10);}
+  .season-card.reveal:hover{transform:translateY(-6px);}
+
+  .card-head{padding:34px 28px;text-align:center;transition:padding .4s ease;}
+  .season-card.open .card-head{padding:22px 28px 14px;}
+  .badge{font-size:2rem;line-height:1;display:block;margin-bottom:10px;transition:font-size .4s ease;}
+  .season-card.open .badge{font-size:1.4rem;}
+  .keyword{
+    font-family:'Gowun Batang',serif;font-weight:700;
+    font-size:1.5rem;color:var(--accent);transition:font-size .4s ease;
+  }
+  .season-card.open .keyword{font-size:1.15rem;}
+  .grade{display:block;margin-top:6px;color:var(--ink-soft);font-size:.9rem;letter-spacing:.04em;}
+  .hint{margin-top:14px;font-size:.8rem;color:var(--ink-soft);opacity:.8;}
+  .season-card.open .hint{display:none;}
+
+
+  .card-body{
+    max-height:0;overflow:hidden;
+    transition:max-height .55s ease;
+    background:var(--accent-soft);
+  }
+  .season-card.open .card-body{max-height:1200px;}
+  .body-inner{padding:26px 28px 32px;}
+
+  .photos{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;}
+  .photo{
+    flex:1;min-width:90px;aspect-ratio:4/3;
+    border-radius:12px;
+    background:rgba(255,255,255,.55);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--accent);font-size:.78rem;text-align:center;overflow:hidden;
+  }
+  .photo img{width:100%;height:100%;object-fit:cover;}
+
+  .field-label{
+    font-family:'Gowun Batang',serif;font-weight:700;
+    color:var(--accent);font-size:1.05rem;
+    margin-bottom:4px;display:block;
+  }
+  .field-text{margin-bottom:20px;color:var(--ink);}
+  .ext-link{
+    display:inline-block;margin-top:4px;font-weight:500;
+    color:var(--accent);text-decoration:none;
+    border-bottom:1.5px solid var(--accent);padding-bottom:2px;
+    width:fit-content;
+  }
+  .ext-link:hover{opacity:.7;}
+
+
+  .timeline-outro{text-align:center;margin-top:70px;}
+  .outro-text{
+    font-family:'Gowun Batang',serif;font-weight:700;
+    font-size:clamp(1.6rem,4vw,2.3rem);margin-bottom:30px;
+  }
+  .outro-btn{
+    font-family:'Gowun Batang',serif;font-size:1.05rem;
+    padding:14px 30px;border:none;border-radius:999px;cursor:pointer;
+    background:var(--winter);color:#fff;letter-spacing:.03em;
+    box-shadow:0 8px 22px rgba(126,107,168,.3);
+    transition:transform .3s ease,box-shadow .3s ease;
+  }
+  .outro-btn:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(126,107,168,.4);}
+
+
+  #guestbook{padding:90px 24px 110px;background:var(--bg);}
+  .gb-form{
+    max-width:480px;margin:0 auto 60px;
+    background:#fff;border:1px solid var(--line);border-radius:18px;
+    padding:30px 26px;box-shadow:0 6px 22px rgba(0,0,0,.05);
+  }
+  .gb-form input,.gb-form textarea{
+    width:100%;font-family:inherit;font-size:.95rem;
+    padding:12px 14px;border:1px solid var(--line);border-radius:10px;
+    margin-bottom:14px;resize:none;color:var(--ink);
+  }
+  .gb-form input:focus,.gb-form textarea:focus{outline:2px solid var(--winter);border-color:transparent;}
+  .gb-submit{
+    width:100%;border:none;border-radius:10px;cursor:pointer;
+    padding:13px;font-family:'Gowun Batang',serif;font-size:1.05rem;
+    background:var(--ink);color:#fff;transition:opacity .3s ease;
+  }
+  .gb-submit:hover{opacity:.85;}
+
+  .gb-list{
+    max-width:980px;margin:0 auto;
+    display:flex;flex-wrap:wrap;gap:18px;justify-content:flex-start;
+  }
+  .memo{
+    width:200px;min-height:160px;border-radius:16px;
+    padding:18px 18px 14px;
+    box-shadow:0 6px 16px rgba(0,0,0,.08);
+    display:flex;flex-direction:column;
+    transform:rotate(var(--rot));
+    animation:pop .4s ease;
+  }
+  @keyframes pop{from{opacity:0;transform:scale(.85) rotate(var(--rot));}to{opacity:1;}}
+  .memo .m-name{font-weight:700;margin-bottom:8px;font-size:.95rem;}
+  .memo .m-msg{flex:1;font-size:.9rem;line-height:1.6;word-break:break-word;white-space:pre-wrap;}
+  .memo .m-time{margin-top:10px;font-size:.72rem;color:rgba(0,0,0,.45);}
+  .gb-empty{text-align:center;color:var(--ink-soft);width:100%;padding:30px 0;}
+
+  @media(max-width:520px){
+    .memo{width:calc(50% - 9px);}
+    .photo{min-width:70px;}
+  }
+</style>
+</head>
+<body>
+
+
+  <section id="hero">
+    <h1 class="hero-line"><span id="typed"></span><span class="cursor">|</span></h1>
+    <p class="hero-sub" id="heroSub">한국외대 융합인재학부 · 강예원</p>
+    <button class="hero-btn" id="toTimeline">내 변화를 보러가기 ↓</button>
+  </section>
+
+
+  <section id="timeline" class="locked">
+    <h2 class="section-title serif">나의 변화 타임라인</h2>
+    <p class="section-desc">봄 · 여름 · 가을 · 겨울 — 카드를 눌러 그 계절의 이야기를 펼쳐보세요.</p>
+
+    <div class="cards" id="cards"></div>
+
+    <div class="timeline-outro">
+      <p class="outro-text serif">변화는 계속됩니다.</p>
+      <button class="outro-btn" id="toGuestbook">방명록 남기기 ↓</button>
+    </div>
+  </section>
+
+
+  <section id="guestbook" class="locked">
+    <h2 class="section-title serif">방명록 남기기</h2>
+    <p class="section-desc">저의 변화를 함께 봐주셔서 감사합니다. 한마디 남겨주세요.</p>
+
+    <div class="gb-form">
+      <input type="text" id="gbName" placeholder="이름 (또는 익명)" maxlength="20">
+      <textarea id="gbMsg" rows="4" placeholder="응원 메시지" maxlength="300"></textarea>
+      <button class="gb-submit" id="gbSubmit">등록</button>
+    </div>
+
+    <div class="gb-list" id="gbList"></div>
+  </section>
+
+<script>
+
+const SEASONS = [
+  {
+    key:'spring', badge:'🌱', name:'봄', keyword:'꿈', grade:'1학년',
+    photos:['assets/spring1.jpg','assets/spring2.jpg','assets/spring3.jpg'],
+    event:'낯선 캠퍼스, 원하지 않았던 전공. 하지만 성적이 나쁘지 않았기에 고등학교 시절 꿈이었던 외교관을 향해 정치외교학과 전과에 도전했다. 자신 있게 신청했지만 결과는 실패였다.',
+    change:'처음으로 원하던 방향이 막혔다. 그러나 이 실패가 오히려 지금의 나를 만든 출발점이 됐다. 외교관이라는 꿈이 내가 진정으로 원하던 길이 맞는지, 미래에 대해 진지하게 고민하기 시작했다.',
+    link:null
+  },
+  {
+    key:'summer', badge:'🌿', name:'여름', keyword:'도전', grade:'2학년',
+    photos:['assets/summer1.jpg','assets/summer2.jpg','assets/summer3.jpg'],
+    event:'전과 실패 후 낙담하는 대신 "융합인재학부 최고 아웃풋이 되겠다"고 마음을 바꿨다. 봉사동아리, 러닝동아리, 영어토론대회 등 내 진로를 찾기 위해 다양한 도전에 뛰어들었다.',
+    change:'막힌 길 앞에서 멈추는 대신 새로운 방향으로 달리는 법을 배웠다. 이것저것 시도해보는 것에 대한 두려움이 없어지고, 도전 그 자체가 점점 익숙해졌다.',
+    link:{text:'영어토론대회 준비영상 보러가기 ↓', href:'assets/debate.mp4'}
+  },
+  {
+    key:'autumn', badge:'🍂', name:'가을', keyword:'확장', grade:'3학년',
+    photos:['assets/autumn1.jpg','assets/autumn2.jpg','assets/autumn3.jpg'],
+    event:'국내에서의 도전이 익숙해질 즈음, 3학년 2학기 미국 캘리포니아 교환학생으로 더 넓은 세계를 경험했다.',
+    change:'캘리포니아에서 수학 후 뉴욕시를 여행하며, 월가를 거닐다가 문득 이 곳에서 일하고 싶다는 생각이 강해졌다. 나의 영어 전공을 살리면서도 새로운 분야에 대한 도전을 처음으로 꿈꾸게 됐다.',
+    links:[
+      {text:'캘리포니아 바다 보러가기 ↓', href:'assets/california.mp4'},
+      {text:'노을지는 뉴욕 전경 보러가기 ↓', href:'assets/NYC.mp4'}
+    ],
+    link:null
+  },
+  {
+    key:'winter', badge:'❄️', name:'겨울', keyword:'선택', grade:'4학년',
+    photos:['assets/winter1.jpg','assets/winter2.jpg','assets/winter3.jpg'],
+    event:'돌아와서 세상을 실질적으로 움직이는 자본의 중심, 금융에 도전하기로 결정했다.',
+    change:'교환학생으로 넓힌 국제적 시야와 다양한 도전으로 다져진 분석적 사고를 금융 직무에 쏟아붓는 중이다. 겨울방학에 금융공모전에 도전하기도 하고, 연합 금융동아리에 가입해 금융 지식을 쌓고 있다. 다음 계절을 향한 나의 변화는 계속된다.',
+    link:{text:'금융공모전 논문 PDF 보러가기 ↓', href:'assets/papers.pdf'} 
+  }
+];
+
+
+const FULL = '나는 꿈에서 시작해, 도전하고, 확장하며, 지금 선택했습니다.';
+const COLORED = '나는 <span class="kw spring">꿈</span>에서 시작해, <span class="kw summer">도전</span>하고, <span class="kw autumn">확장</span>하며, 지금 <span class="kw winter">선택</span>했습니다.';
+const typedEl = document.getElementById('typed');
+
+function typeWriter(i){
+  if(i <= FULL.length){
+    typedEl.textContent = FULL.slice(0,i);
+    setTimeout(()=>typeWriter(i+1), 85);
+  } else {
+    typedEl.innerHTML = COLORED;                 
+    setTimeout(()=>document.getElementById('heroSub').classList.add('show'), 400);
+    setTimeout(()=>document.getElementById('toTimeline').classList.add('show'), 1000);
+  }
+}
+window.addEventListener('load', ()=> setTimeout(()=>typeWriter(0), 800));
+
+
+const cardsEl = document.getElementById('cards');
+SEASONS.forEach(s=>{
+  const card = document.createElement('div');
+  card.className = 'season-card';
+  card.dataset.season = s.key;
+  card.style.setProperty('--accent', `var(--${s.key})`);
+  card.style.setProperty('--accent-soft', `var(--${s.key}-soft)`);
+  
+  const photosHTML = s.photos && s.photos.length
+    ? `<div class="photos">${s.photos.map(src =>
+        `<div class="photo"><img src="${src}"></div>`).join('')}</div>`
+    : '';
+
+
+  const linkHTML = s.links
+    ? s.links.map(l => `<a class="ext-link" href="${l.href}" target="_blank" rel="noopener" style="display:block;margin-top:8px;">${l.text}</a>`).join('')
+    : s.link
+    ? `<a class="ext-link" href="${s.link.href}" target="_blank" rel="noopener">${s.link.text}</a>`
+    : '';
+
+  card.innerHTML = `
+    <div class="card-head">
+      <span class="badge">${s.badge}</span>
+      <span class="keyword">${s.name} [${s.keyword}]</span>
+      <span class="grade">${s.grade}</span>
+      <p class="hint">카드를 눌러 펼치기 ↓</p>
+    </div>
+    <div class="card-body">
+      <div class="body-inner">
+        ${photosHTML}
+        <span class="field-label">사건</span>
+        <p class="field-text">${s.event}</p>
+        <span class="field-label">변화</span>
+        <p class="field-text">${s.change}</p>
+        ${linkHTML}
+      </div>
+    </div>`;
+
+
+  card.querySelector('.card-head').addEventListener('click', ()=> card.classList.toggle('open'));
+  cardsEl.appendChild(card);
+});
+
+
+const allCards = document.querySelectorAll('.season-card');
+const revealObs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('reveal'); });
+},{threshold:.2});
+allCards.forEach(c=>revealObs.observe(c));
+
+const ratios = {};
+const bgObs = new IntersectionObserver((entries)=>{
+  entries.forEach(e=> ratios[e.target.dataset.season] = e.intersectionRatio );
+  let top=null, max=0;
+  for(const k in ratios){ if(ratios[k] > max){ max=ratios[k]; top=k; } }
+  if(top && max>0.15){
+    document.documentElement.style.setProperty('--active-bg', `var(--${top}-soft)`);
+  }
+},{threshold:[0,.25,.5,.75,1]});
+allCards.forEach(c=>bgObs.observe(c));
+
+
+function unlockAndScroll(sectionId){
+  const sec = document.getElementById(sectionId);
+  sec.classList.remove('locked');
+  requestAnimationFrame(()=> requestAnimationFrame(()=>{
+    sec.scrollIntoView({behavior:'smooth', block:'start'});
+  }));
+}
+document.getElementById('toTimeline').addEventListener('click', ()=> unlockAndScroll('timeline'));
+document.getElementById('toGuestbook').addEventListener('click', ()=> unlockAndScroll('guestbook'));
+
+
+const KEY = 'guestbook_entries';
+const PASTELS = ['#FFF1A8','#D7EFC8','#CBE4F4','#F6D6E4']; 
+const listEl = document.getElementById('gbList');
+
+let storageOK = true;
+try{ const t='__test__'; localStorage.setItem(t,'1'); localStorage.removeItem(t); }
+catch(e){ storageOK = false; }
+
+
+function load(){
+  if(!storageOK) return load._mem || [];
+  try{ return JSON.parse(localStorage.getItem(KEY)) || []; }catch(e){ return []; }
+}
+function save(arr){
+  if(!storageOK){ load._mem = arr; return; }
+  try{ localStorage.setItem(KEY, JSON.stringify(arr)); }catch(e){ storageOK=false; }
+}
+function fmt(ts){
+  const d=new Date(ts), p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}. ${p(d.getMonth()+1)}. ${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+
+function render(){
+  const items = load();
+  listEl.innerHTML = '';
+  if(items.length === 0){
+    listEl.innerHTML = '<p class="gb-empty">아직 방명록이 없습니다. 첫 메시지를 남겨주세요!</p>';
+    return;
+  }
+  items.forEach((it, i)=>{  
+    const memo = document.createElement('div');
+    memo.className = 'memo';
+    memo.style.background = PASTELS[i % PASTELS.length];
+    memo.style.setProperty('--rot', (i % 2 === 0 ? -1.5 : 1.5) + 'deg');
+    memo.innerHTML = `
+      <div class="m-name">${esc(it.name)}</div>
+      <div class="m-msg">${esc(it.message)}</div>
+      <div class="m-time">${fmt(it.time)}</div>`;
+    listEl.appendChild(memo);
+  });
+}
+function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+document.getElementById('gbSubmit').addEventListener('click', ()=>{
+  const nameEl = document.getElementById('gbName');
+  const msgEl  = document.getElementById('gbMsg');
+  const msg = msgEl.value.trim();
+  if(!msg){ msgEl.focus(); return; }
+  const name = nameEl.value.trim() || '익명';
+
+  const items = load();
+  items.push({ name, message: msg, time: Date.now() });
+  save(items);
+  nameEl.value = ''; msgEl.value = '';
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
